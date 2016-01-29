@@ -28,4 +28,10 @@ SELECT blah FROM table WHERE foo
 
 ```
 
+## Architecture
+
+#### Log update
+Log comes in hourly,
+accumulate log data in worker
+
 [schema_image]: https://raw.githubusercontent.com/halcyon-vortex/star-velocity-db/master/assets/schema.png "Schema for logging repository attention"
