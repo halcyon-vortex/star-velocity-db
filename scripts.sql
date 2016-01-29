@@ -74,3 +74,38 @@ WITH (
 );
 ALTER TABLE halcyon."Velocities"
   OWNER TO postgres;
+
+
+
+
+-- Insert Statements
+-- *****************
+
+-- Insert Repository information
+
+Insert into halcyon."Repos" (id, num_stars, language)
+Values (50212606, 375, 'Cocoascript')
+
+Insert into halcyon."Repos" (id, num_stars, language) -- 
+Values (47931294, 346, 'Python')
+
+-- Or, including date_created
+Insert into halcyon."Repos" (id, num_stars, language, date_created)
+Values (7379964, 4762, 'CSS', '12/30/2012')
+
+
+-- Insert into daily watch increase table
+
+Insert into halcyon."Daily_Stars" (date, stars, repo_id)
+Values ('1/28/2016',162, 50212606)
+
+Insert into halcyon."Daily_Stars" (date, stars, repo_id)
+Values ('1/28/2016',160, 47931294)
+
+Insert into halcyon."Daily_Stars" (date, stars, repo_id)
+Values ('1/28/2016',159, 7379964)
+
+
+-- Select Statements
+
+Select * from halcyon."Velocities" 
