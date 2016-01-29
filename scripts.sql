@@ -108,4 +108,114 @@ Values ('1/28/2016',159, 7379964)
 
 -- Select Statements
 
-Select * from halcyon."Velocities" 
+Select * from halcyon."Daily_Stars" Where date > (CURRENT_DATE - 7)
+
+
+-- Velocity computation
+
+select 
+  ((endVisits + startVisits)/40) average, 
+  (endVisits > startVisits) increasing, 
+  ((endVisits - startVisits)/(startVisits) * 100) percentChange 
+from 
+  (select sum(visit_count) startVisits 
+    from store_visit 
+    where 
+      visit_date > current_date - 40 
+      and visit_date <= current_date - 20) startRange,
+  (select sum(visit_count) endVisits 
+    from store_visit 
+    where  
+      visit_date > current_date - 20) endRange;
+
+-- becomes ->
+-- for daily velocity
+select 
+  endRange.repo_id,
+  ((endStars + startStars)/2) average, 
+  (endStars > startStars) increasing, 
+  ((endStars - startStars)::real /(startStars) * 100) percentChange 
+from 
+  (select repo_id, sum(stars) startStars
+    from halcyon."Daily_Stars"
+    where 
+      date = current_date - 2
+    group by repo_id) startRange Join
+  (select repo_id, sum(stars) endStars 
+    from halcyon."Daily_Stars" 
+    where  
+      date = current_date - 1
+    group by repo_id) endRange 
+    On startRange.repo_id = endRange.repo_id
+
+-- for weekly velocity
+select 
+  endRange.repo_id,
+  ((endStars + startStars)/14) average, 
+  (endStars > startStars) increasing, 
+  ((endStars - startStars)::real /(startStars) * 100) percentChange 
+from 
+  (select repo_id, sum(stars) startStars
+    from halcyon."Daily_Stars"
+    where 
+      date > current_date - 14 - 1
+      and date <= current_date - 7 - 1 -- since only have snapshot up to 'yesterday'
+    group by repo_id) startRange Join
+  (select repo_id, sum(stars) endStars 
+    from halcyon."Daily_Stars" 
+    where  
+      date >= current_date - 7
+    group by repo_id) endRange 
+    On startRange.repo_id = endRange.repo_id
+
+
+-- could do queries for any window of time
+
+
+-- get all info for a specific repo
+WITH specificRepo AS (select * from halcyon."Daily_Stars"
+    where repo_id = 7379964
+    and date >= current_date - 7
+      and date <= current_date - 1) 
+
+select 
+  ((endStars + startStars)/2) average, 
+  (endStars > startStars) increasing, 
+  ((endStars - startStars)::real /(startStars) * 100) percentChange 
+from 
+  
+  (select sum(stars) startStars
+    from specificRepo
+    where 
+      date = current_date - 2) startRange,
+  (select sum(stars) endStars 
+    from specificRepo 
+    where  
+      date = current_date - 1) endRange 
+
+
+-- return time series of percent increase
+WITH specificRepo AS (select * from halcyon."Daily_Stars"
+    where repo_id = 7379964
+    and date >= current_date - 7
+      and date <= current_date - 1) 
+
+
+select 
+  ((oneBack - twoBack)::real /(twoBack) * 100) yesterdayPercentChange,
+  ((twoBack - threeBack)::real /(threeBack) * 100) twoPrevPercentChange 
+from 
+  
+  (select sum(stars) threeBack
+    from specificRepo
+    where 
+      date = current_date - 3) three,
+  (select sum(stars) twoBack
+    from specificRepo 
+    where  
+      date = current_date - 2) two,
+  (select sum(stars) oneBack
+    from specificRepo 
+    where  
+      date = current_date - 1) one
+    
